@@ -1,0 +1,19 @@
+services:
+- type: web
+  name: gustave-chatbot
+  env: python
+  plan: free
+  region: frankfurt
+  buildCommand: pip install -r requirements.txt
+  startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+  envVars:
+    - key: OPENAI_API_KEY
+      sync: false
+    - key: OPENAI_MODEL
+      value: gpt-4o-mini
+    - key: OPENAI_TEMPERATURE
+      value: "0.3"
+  healthCheckPath: /health
+  runtime: docker
+  autoDeploy: true
+  # Note: Using env=python is fine without Docker; but we include Dockerfile for local runs.

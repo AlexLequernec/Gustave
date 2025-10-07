@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GUSTAVE – Chat Acquisition</title>
+    <style>
+      .chatbox{position:fixed;bottom:24px;right:24px;width:360px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.15);overflow:hidden;font-family:system-ui}
+      .head{padding:12px 16px;background:#0ea5e9;color:#fff;font-weight:600}
+      .body{height:420px;overflow:auto;padding:12px;background:#f8fafc}
+      .msg{background:#fff;margin:8px 0;padding:10px 12px;border-radius:12px;white-space:pre-wrap}
+      .me{background:#e2f2ff;margin-left:48px}
+      .bot{background:#fff;margin-right:48px}
+      .foot{display:flex;gap:8px;padding:12px;background:#fff}
+      input{flex:1;padding:10px;border-radius:10px;border:1px solid #e5e7eb}
+      button{padding:10px 14px;border-radius:10px;border:0;background:#0ea5e9;color:#fff;font-weight:600}
+      small{display:block;padding:0 12px 12px;color:#6b7280}
+    </style>
+  </head>
+  <body>
+    <div class="chatbox">
+      <div class="head">GUSTAVE • Conseiller Acquisition</div>
+      <div class="body" id="log"></div>
+      <div class="foot">
+        <input id="inp" placeholder="Posez votre question…" />
+        <button id="send">Envoyer</button>
+      </div>
+      <small>
+        En envoyant un message, vous acceptez notre politique de confidentialité. Pour être recontacté, nous recueillerons votre email/téléphone avec votre consentement.
+      </small>
+    </div>
+    <script>
+      const API_URL = "http://localhost:8000/chat"; // ⚠️ Remplacez par l'URL Render/Cloud Run
+      const log = document.getElementById('log');
+      const inp = document.getElementById('inp');
+      const send = document.getElementById('send');
+
+      function add(role, text){
+        const div = document.createElement('div');
+        div.className = 'msg ' + (role==='user'?'me':'bot');
+        div.textContent = text;
+        log.appendChild(div); log.scrollTop = log.scrollHeight;
+      }
+
+      async function ask(){
+        const q = inp.value.trim(); if(!q) return; inp.value='';
+        add('user', q);
+        try{
+          const res = await fetch(API_URL, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({messages:[{role:'user', content:q}]})
+          });
+          const data = await res.json();
+          add('assistant', data.answer || 'Erreur');
+          if (data.lead_hint) add('assistant', '💬 ' + data.lead_hint);
+        }catch(e){ add('assistant', 'Erreur de connexion à l’API'); }
+      }
+
+      send.onclick = ask; inp.onkeydown = (e)=>{ if(e.key==='Enter') ask(); };
+      add('assistant','Bonjour ! Je suis GUSTAVE. Je peux vous aider sur l’acquisition (SEO/SEA, email, social ads, marketplaces…). Posez votre question.');
+    </script>
+  </body>
+</html>
